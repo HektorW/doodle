@@ -9,7 +9,8 @@ define([
 
   'collections/ConnectionList',
 
-  'views/ConnectionListView'
+  'views/ConnectionListView',
+  'views/CaptureImageView'
 ], function(
   $,
   _,
@@ -21,7 +22,8 @@ define([
 
   ConnectionList,
 
-  ConnectionListView
+  ConnectionListView,
+  CaptureImageView
 ) {
 
 
@@ -36,10 +38,17 @@ define([
         <h4>Other connected</h4>
         <div id="connections"></div>
       </div>
+      <div>
+        <button id="btn-take_picture">Take picture</button>
+      </div>
     */}.toString().split('\n').slice(1, -1).join('')),
 
+    events: {
+      'click #btn-take_picture': 'takePicture'
+    },
+
     initialize: function() {
-      _.bindAll(this, 'setupIO', 'render');
+      _.bindAll(this, 'setupIO', 'render', 'takePicture');
 
       this.connectionList = new ConnectionList();
       this.connectionListView = new ConnectionListView();
@@ -64,8 +73,6 @@ define([
         });
 
         socket.emit('app.connections');
-
-        this.render();
       }, this));
 
       socket.on('app.connections', _.bind(function(data) {
@@ -114,6 +121,11 @@ define([
       this.$('#connections').html(this.connectionListView.render().$el);
 
       return this;
+    },
+
+    takePicture: function() {
+      var imageView = new CaptureImageView();
+      this.$el.html(imageView.render().$el);
     }
 
   });
