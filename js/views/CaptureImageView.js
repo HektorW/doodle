@@ -15,8 +15,8 @@ define([
   var CaptureImageView = Backbone.View.extend({
 
     template: _.template((function() {/*
-      <video autoplay="true" width="320" height="240" style="position:fixed;"></video>
-      <button id="btn-capture" style="position:fixed;bottom:20px;width:20%;left:50%;margin-left:-10%;text-align:center;">Take picture</button>
+      <video autoplay="true" width="<%= size %>" height="<%= size %>" style="position:absolute;margin:0;top:0;left:0;"></video>
+      <button id="btn-capture" style="position:fixed;bottom:20px;width:50%;left:50%;margin-left:-25%;text-align:center;">Take picture</button>
       <canvas></canvas>
     */}.toString().split('\n').slice(1, -1).join('\n'))),
    
@@ -29,7 +29,12 @@ define([
     },
 
     render: function() {
-      this.$el.html(this.template());
+      var maxSize = 640;
+      var size = Math.min(maxSize, window.innerWidth, window.innerHeight);
+
+      this.$el.html(this.template({
+        size: size
+      }));
 
       this.setupCamera();
 
@@ -67,7 +72,9 @@ define([
         dataURI: canvas.toDataURL('image/png')
       });
 
-      this.trigger('picture:captured', doodleImageModel);
+      this.trigger('picture:captured', {
+        doodleImageModel: doodleImageModel
+      });
     }
 
   });

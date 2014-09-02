@@ -12,6 +12,7 @@ define([
 
   'views/ConnectionListView',
   'views/DrawDoodleView',
+  'views/DoodleImageView',
   'views/CaptureImageView'
 ], function(
   $,
@@ -27,6 +28,7 @@ define([
 
   ConnectionListView,
   DrawDoodleView,
+  DoodleImageView,
   CaptureImageView
 ) {
 
@@ -39,10 +41,6 @@ define([
       <h1>Doodle</h1>
       <h3><%- name %> <small>id: <%- connectionId %></small></h3>
       <div>
-        <h4>Other connected</h4>
-        <div id="connections"></div>
-      </div>
-      <div>
         <button id="btn-take_picture">Take picture</button>
       </div>
     */}.toString().split('\n').slice(1, -1).join('')),
@@ -52,15 +50,17 @@ define([
     },
 
     initialize: function() {
-      _.bindAll(this, 'setupIO', 'render', 'takePicture');
+      _.bindAll(this, 'setupIO', 'render', 'takePicture', 'onConnectionSelected');
 
       this.connectionList = new ConnectionList();
       this.connectionListView = new ConnectionListView();
       this.connectionListView.setConnectionList(this.connectionList);
+      this.connectionListView.on('connection:select', this.onConnectionSelected);
 
       window.collection = this.connectionList;
 
-      this.name = ['Hektor', 'Gustav', 'Mikaela', 'Emma', 'Anders', 'Henrik'][parseInt(Math.random() * 4, 10)];
+      var names = ['Hektor', 'Gustav', 'Mikaela', 'Emma', 'Anders', 'Henrik'];
+      this.name = names[parseInt(Math.random() * names.length, 10)];
 
       this.setupIO();
     },
@@ -77,6 +77,7 @@ define([
         });
 
         socket.emit('app.connections');
+        this.$('small').html(this.connectionId);
       }, this));
 
       socket.on('app.connections', _.bind(function(data) {
@@ -115,6 +116,55 @@ define([
           connection.set('name', data.name);
         }
       }, this));
+
+      socket.on('doodle.request', _.bind(function(data) {
+
+        var model = new DoodleImageModel({
+          dataURI: data.dataURI
+        });
+
+        var doodleView = new DrawDoodleView({
+          doodleImageModel: model,
+          connectionId: data.from
+        });
+        this.$el.html(doodleView.render().$el);
+
+        doodleView.on('request:back', function() {
+          this.render();
+        }, this);
+        doodleView.on('request:send', function(data) {
+
+          socket.emit('app.emit', {
+            event: 'doodle.response',
+            to: data.connectionId,
+            data: {
+              dataURI: data.doodleImageModel.get('dataURI'),
+              from: this.connectionId
+            }
+          });
+
+          this.render();
+
+        }, this);
+
+      }, this));
+
+      socket.on('doodle.response', _.bind(function(data) {
+
+        var model = new DoodleImageModel({
+          dataURI: data.dataURI
+        });
+
+        var view = new DoodleImageView({
+          doodleImageModel: model
+        });
+        this.$el.html(view.render().$el);
+
+        view.on('request:back', function() {
+          this.render();
+        }, this);
+
+      }, this));
     },
 
     render: function() {
@@ -122,22 +172,35 @@ define([
         name: this.name,
         connectionId: this.connectionId
       }));
-      this.$('#connections').html(this.connectionListView.render().$el);
 
       return this;
     },
 
     takePicture: function() {
       var imageView = new CaptureImageView();
-      imageView.on('picture:captured', function(doodleImageModel) {
-        var doodleView = new DrawDoodleView({
-          doodleImageModel: doodleImageModel
-        });
-
-        this.$el.html(doodleView.render().$el);
-      }, this);
-
       this.$el.html(imageView.render().$el);
+      
+      imageView.on('picture:captured', this.onImageCaptured, this);
+    },
+    onImageCaptured: function(data) {   
+      this.doodleImageModel = data.doodleImageModel;
+
+      this.$el.html(this.connectionListView.render().$el);
+      
+    },
+
+    onConnectionSelected: function(data) {
+      if (this.doodleImageModel) {
+        this.socket.emit('app.emit', {
+          event: 'doodle.request',
+          to: data.connectionId,
+          data: {
+            from: this.connectionId,
+            dataURI: this.doodleImageModel.get('dataURI')
+          }
+        });
+        this.render();
+      }
     }
 
   });

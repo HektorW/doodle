@@ -14,16 +14,20 @@ define([
   
   var ConnectionListView = Backbone.View.extend({
     template: _.template(function() {/*
-      <ul>
+      <ul style="margin-top:20px;">
         <% _.each(models, function(model) { %>
-          <li><%- model.attributes.name %></li>
+          <li data-connection_id="<%- model.attributes.connectionId %>" style="font-size:30px;margin:20px 10px;"><%- model.attributes.name %></li>
         <% }); %>
       </ul>
     */}.toString().split('\n').slice(1, -1).join('')),
    
+    events: {
+      'click li': 'selectConnection'
+    },
+
 
     initialize: function() {
-      _.bindAll(this, 'render', 'setConnectionList');
+      _.bindAll(this, 'render', 'setConnectionList', 'selectConnection');
 
     },
 
@@ -35,9 +39,16 @@ define([
     render: function() {
       this.$el.html(this.template(this.collection));
 
-      console.log(this.$el.html());
-
       return this;
+    },
+
+    selectConnection: function(event) {
+      var $target = $(event.target).closest('[data-connection_id]');
+      var connectionId = $target.attr('data-connection_id');
+
+      this.trigger('connection:select', {
+        connectionId: connectionId
+      });
     }
   });
 

@@ -9,14 +9,16 @@ define([
 ) {
 
 	var DoodlePathModel = Backbone.Model.extend({
-		defaults: {
-			color: '#ffffff',
-			thickness: 3,
-			points: []
+		defaults: function() {
+			return {
+				color: '#FF0000',
+				thickness: 3,
+				points: []
+			};
 		},
 
 		addPoint: function(point) {
-			this.points.push(point);
+			this.get('points').push(point);
 			this.trigger('add:point');
 		}
 	});
