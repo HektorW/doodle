@@ -6,10 +6,12 @@ define([
   'socket.io',
 
   'models/Connection',
+  'models/DoodleImageModel',
 
   'collections/ConnectionList',
 
   'views/ConnectionListView',
+  'views/DrawDoodleView',
   'views/CaptureImageView'
 ], function(
   $,
@@ -19,10 +21,12 @@ define([
   io,
 
   Connection,
+  DoodleImageModel,
 
   ConnectionList,
 
   ConnectionListView,
+  DrawDoodleView,
   CaptureImageView
 ) {
 
@@ -56,7 +60,7 @@ define([
 
       window.collection = this.connectionList;
 
-      this.name = ['Hektor', 'Gustav', 'Mikaela', 'Emma'][parseInt(Math.random() * 4, 10)];
+      this.name = ['Hektor', 'Gustav', 'Mikaela', 'Emma', 'Anders', 'Henrik'][parseInt(Math.random() * 4, 10)];
 
       this.setupIO();
     },
@@ -89,7 +93,7 @@ define([
             data: {
               target: this.connectionId
             }
-          })
+          });
         }, this);
 
       }, this));
@@ -125,6 +129,14 @@ define([
 
     takePicture: function() {
       var imageView = new CaptureImageView();
+      imageView.on('picture:captured', function(doodleImageModel) {
+        var doodleView = new DrawDoodleView({
+          doodleImageModel: doodleImageModel
+        });
+
+        this.$el.html(doodleView.render().$el);
+      }, this);
+
       this.$el.html(imageView.render().$el);
     }
 
