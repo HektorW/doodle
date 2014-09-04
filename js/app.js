@@ -13,6 +13,7 @@ define([
   'views/ConnectionListView',
   'views/DrawDoodleView',
   'views/DoodleImageView',
+  'views/BrushPickerView',
   'views/CaptureImageView'
 ], function(
   $,
@@ -29,6 +30,7 @@ define([
   ConnectionListView,
   DrawDoodleView,
   DoodleImageView,
+  BrushPickerView,
   CaptureImageView
 ) {
 
@@ -41,7 +43,7 @@ define([
       <h1>Doodle</h1>
       <h3><%- name %> <small>id: <%- connectionId %></small></h3>
       <div>
-        <button id="btn-take_picture">Take picture</button>
+        <button id="btn-take_picture" style="margin:170px auto;width:40%;display:block;padding:20px;">Take picture</button>
       </div>
     */}.toString().split('\n').slice(1, -1).join('')),
 
@@ -172,6 +174,10 @@ define([
         name: this.name,
         connectionId: this.connectionId
       }));
+
+
+      var brush = new BrushPickerView();
+      this.$el.html(brush.render().$el);
 
       return this;
     },

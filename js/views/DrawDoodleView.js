@@ -71,6 +71,11 @@ define([
 			this.doodleImage = new Image();
 			this.doodleImage.src = this.doodleImageModel.get('dataURI');
 
+			this.brushPicker = new BrushPickerView();
+			this.brushPicker.on('color.selected', function(data) {
+				this.activeColor = data.color;
+			}, this);
+
 			this.connectionId = options.connectionId;
 
 			_.bindAll(this,
@@ -87,6 +92,8 @@ define([
 
 		render: function() {
 			this.$el.html(this.template());
+
+			this.$('#brush-picker').html(this.brushPicker.render().$el);
 
 			var canvas = this.canvas = this.$('canvas').get(0);
 			var ctx = this.ctx = this.canvas.getContext('2d');
