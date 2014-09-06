@@ -8,12 +8,12 @@ define([
   Backbone
 ) {
   
-  var Connection = Backbone.Model.extend({
+  var User = Backbone.Model.extend({
     defaults: {
       name: 'Unknown',
       connectionId: -1
     }
   });
 
-  return Connection;
+  return User;
 });

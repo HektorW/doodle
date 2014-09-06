@@ -30,26 +30,35 @@
 * RepsonseImages
   - ImageModel
 
+* DoodlePathList
+  - DoodlePathModel
+
 # ###
 # Views
-* CaptureImage
+* CaptureImage [Screen]
   -> None
   <- ImageModel
 
-* SelectRecipient
-  -> ConnectionList
+* SelectRecipient [Screen]
+  -> UserCollection, ImageModel
   <- Connection
 
-* DrawImage
+* DrawImage [Screen]
   -> ImageModel
   <- ImageModel
   - ColorPicker
+  - DoodlePathCollection
 
-* ColorPicker
+* ColorPicker [Widget]
+  - 
 
-* ViewImage
+* ViewImage [Screen]
   -> ImageModel
   <- None
+
+* StartView [Screen]
+  -> UserModel, UserCollection, RequestImageCollection, ResponseImageCollection
+  
 
 # ###
 # Models
@@ -63,12 +72,25 @@
   - height
   - ConnectionModel: null 
 
+* DoodlePathModel
+  - color
+  - size
+  - points
 
 
 # ###
 # Other
 * Socket
-  -> ConnectionList
-  -> RequestImagesList
-  -> ResponseImagesList
+  -> UserModel, UserCollection, RequestImageCollection, ResponseImageCollection
+
 * App
+  - Sets up
+    + Collections
+      * UserCollection
+      * ResponseImageCollection
+      * RequestImageCollection
+    + Views
+      * CaptureImage
+      * DrawImage
+      * ViewImage
+      * SelectRecipient

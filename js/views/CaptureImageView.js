@@ -3,13 +3,13 @@ define([
   'underscore',
   'backbone',
 
-  'models/DoodleImageModel'
+  'models/ImageModel'
 ], function(
   $,
   _,
   Backbone,
 
-  DoodleImageModel
+  ImageModel
 ) {
   
   var CaptureImageView = Backbone.View.extend({
@@ -27,8 +27,10 @@ define([
     },
 
     initialize: function() {
-      _.bindAll(this, 'render', 'capture', 'setupCamera', 'onMediaStreamSuccess', 'onMediaStreamFail');
+      _.bindAll(this, 'onMediaStreamSuccess', 'onMediaStreamFail');
     },
+
+    setActive: function() {},
 
     render: function() {
       this.$el.html(this.template());
@@ -79,14 +81,18 @@ define([
 
       this.videoStream.stop();
 
-      var doodleImageModel = new DoodleImageModel({
+      var imageModel = new ImageModel({
         dataURI: canvas.toDataURL('image/png'),
         width: width,
         height: height
       });
 
-      this.trigger('picture:captured', {
-        doodleImageModel: doodleImageModel
+      this.trigger('request.screen', {
+        screen: 'user-select',
+        data: {
+          imageModel: imageModel,
+          action: 'send.doodle.request'
+        }
       });
     }
 

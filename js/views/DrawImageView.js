@@ -4,7 +4,7 @@ define([
 	'backbone',
 
 	'models/DoodlePathModel',
-	'models/DoodleImageModel',
+	'models/ImageModel',
 
 	'collections/DoodlePathCollection',
 
@@ -15,14 +15,14 @@ define([
 	Backbone,
 
 	DoodlePathModel,
-	DoodleImageModel,
+	ImageModel,
 
 	DoodlePathCollection,
 
 	BrushPickerView
 ) {
 
-	var DrawDoodleView = Backbone.View.extend({
+	var drawImageView = Backbone.View.extend({
 
 		template: _.template(function() {/*
 			<div class="draw-doodle">
@@ -52,7 +52,7 @@ define([
 			'click #btn-send': 'requestSend'
 		},
 
-		doodleImageModel: null,
+		imageModel: null,
 		doodleImage: null,
 
 		canvas: null,
@@ -66,46 +66,33 @@ define([
 		///////////////
 		// Functions //
 		///////////////
-		initialize: function(options) {
-			if (!options.doodleImageModel) {
-				throw 'No DoodleImageModel supplied to DrawDoodleView';
-			}
-
-			this.doodleImageModel = options.doodleImageModel;
-			this.doodleImage = new Image();
-			this.doodleImage.src = this.doodleImageModel.get('dataURI');
-
+		initialize: function() {
 			this.brushPicker = new BrushPickerView();
-			this.brushPicker.on('color.selected', function(data) {
-				this.activeColor = data.color;
-			}, this);
-
-			this.connectionId = options.connectionId;
-
-			_.bindAll(this,
-				'render', 'drawImage', 'drawLine', 'drawPaths', 'clearCanvas',
-				'startNewPath', 'endPath', 'onPathUpdate', 'getPointInElement',
-				'onTouchStart', 'onTouchEnd', 'onTouchMove', 'onTouchCancel', 'onTouchLeave', 'getPointFromTouchEvent',
-				'onMouseDown', 'onMouseUp', 'onMouseMove',
-				'requestBack', 'requestSend'
-			);
+			this.listenTo(this.brushPicker, 'color.selected', this.colorSelected);
 
 			this.doodlePaths = new DoodlePathCollection();
-			this.doodlePaths.on('add change remove reset', this.drawPaths);
+			this.listenTo(this.doodlePaths, 'add change remove reset', this.drawAll);
+		},
+
+		setActive: function(data) {
+			this.imageModel = data.imageModel;
+
+			this.image = new Image();
+			this.image.src = this.imageModel.get('dataURI');
 		},
 
 		render: function() {
 			this.$el.html(this.template());
 
-			this.$('#brush-picker').html(this.brushPicker.render().$el);
+			this.$('#brush-picker').empty().html(this.brushPicker.render().$el);
 
 			var canvas = this.canvas = this.$('canvas').get(0);
-			canvas.width = this.doodleImageModel.get('width');
-			canvas.height = this.doodleImageModel.get('height');
+			canvas.width = this.imageModel.get('width');
+			canvas.height = this.imageModel.get('height');
 
-			var ctx = this.ctx = this.canvas.getContext('2d');
+			this.ctx = this.canvas.getContext('2d');
 
-			this.drawImage();
+			this.drawAll();
 
 			return this;
 		},
@@ -114,17 +101,11 @@ define([
 			this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 		},
 		drawImage: function() {
-			this.ctx.drawImage(this.doodleImage, 0, 0, this.canvas.width, this.canvas.height);
+			this.ctx.drawImage(this.image, 0, 0, this.canvas.width, this.canvas.height);
 		},
-		getModel: function() {
-			var dataURI = this.canvas.toDataURL('image/png');
-			var model = new DoodleImageModel({
-				dataURI: dataURI
-			});
-			return model;
-		},
+		
 
-		drawPaths: function() {
+		drawAll: function() {
 			this.clearCanvas();
 			this.drawImage();
 
@@ -259,19 +240,31 @@ define([
 			};
 		},
 
+		colorSelected: function(data) {
+			this.activeColor = data.color;
+		},
+
 
 		requestBack: function() {
-			this.trigger('request:back');
+			this.trigger('request.screen', {
+				screen: 'previous'
+			});
 		},
 		requestSend: function() {
-			var model = this.getModel();
-			this.trigger('request:send', {
-				doodleImageModel: model,
-				connectionId: this.connectionId
+			this.imageModel.set('dataURI', this.canvas.toDataURL('image/png'));
+
+			this.trigger('request.action', {
+				action: 'send.doodle.response',
+				data: {
+					imageModel: this.imageModel
+				}
+			})
+			this.trigger('request.screen', {
+				screen: 'previous'
 			});
 		}
 
 	});
 
-	return DrawDoodleView;
+	return drawImageView;
 });

@@ -8,13 +8,14 @@ define([
 	Backbone
 ) {
 
-	var DoodleImageModel = Backbone.Model.extend({
+	var ImageModel = Backbone.Model.extend({
 		defaults: {
 			dataURI: '',
 			width: 0,
-			height: 0
+			height: 0,
+			user: null
 		}
 	});
 
-	return DoodleImageModel;
+	return ImageModel;
 });

@@ -3,26 +3,26 @@ define([
   'underscore',
   'backbone',
 
-  'models/Connection'
+  'models/UserModel'
 ], function(
   $,
   _,
   Backbone,
 
-  Connection
+  UserModel
 ) {
 
-  var ConnectionsList = Backbone.Collection.extend({
-    model: Connection,
+  var UserCollection = Backbone.Collection.extend({
+    model: UserModel,
 
     initialize: function() {
-      _.bindAll(this, 'setConnections');
+      _.bindAll(this, 'setUsers');
     },
 
-    setConnections: function(connections) {
-      var models = _.map(connections, function(connection) {
-        return new Connection({
-          connectionId: connection.id
+    setUsers: function(users) {
+      var models = _.map(users, function(user) {
+        return new UserModel({
+          connectionId: user.id
         });
       });
 
@@ -37,6 +37,6 @@ define([
   });
 
 
-  return ConnectionsList;
+  return UserCollection;
 
 });

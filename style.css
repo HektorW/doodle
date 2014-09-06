@@ -1,7 +1,7 @@
 /*
 navy: #001F3F 
-blue: #0074D9 
-aqua: #7FDBFF 
+blue: #0074D9
+aqua: #7FDBFF
 teal: #39CCCC 
 olive: #3D9970 
 green: #2ECC40 
@@ -22,7 +22,11 @@ white: #FFFFFF
 /**
  * General
  */
+html {
+  height: 100%;
+}
 body {
+  height: 100%;
   background: #3D9970;
   color: #FFFFFF;
 
@@ -33,6 +37,10 @@ button {
   background: #0074D9;
   border: 0;
   padding: 0.2em 1em;
+  transition: background 0.1s ease;
+}
+button:active {
+  background: #001F3F;
 }
 button[disabled] {
   background: #DDDDDD;
@@ -46,6 +54,63 @@ ul {
   padding-left: 0;
 }
 
+
+.title {
+  font-size: 3em;
+
+  text-align: center;
+}
+
+
+/**
+ * StartView
+ */
+.start-view .title {
+  margin: 0;
+  padding-top: 1em;
+  color: #FFFFFF;
+}
+.start-view--header-name {
+  color: #FFFFFF;
+
+  margin-top: 0;
+
+  text-align: center;
+}
+.start-view--capture-image {
+  display: block;
+  position: absolute;
+
+  width: 70vw;
+  height: 70vw;
+  left: 50%;
+  top: 50%;
+  margin-left: -35vw;
+  margin-top: -35vw;
+  
+  border-radius: 5%;
+}
+.start-view--capture-image .glyphicon {
+  font-size: 40vw;
+}
+.start-view--footer {
+  position: absolute;
+  bottom: 10vw;
+  width: 100%;
+}
+.start-view--footer-item {
+  display: inline-block;
+
+  width: 38%;
+  padding: 5%;
+  margin: 0 5%;
+
+  text-align: center;
+
+  border-radius: 5%;
+
+  background: #0074D9;
+}
 
 
 /**

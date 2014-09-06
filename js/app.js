@@ -3,221 +3,152 @@ define([
   'underscore',
   'backbone',
 
-  'socket.io',
+  'sockethandler',
 
-  'models/Connection',
-  'models/DoodleImageModel',
+  'models/UserModel',
+  'models/ImageModel',
 
-  'collections/ConnectionList',
+  'collections/UserCollection',
+  'collections/ImageCollection',
 
-  'views/ConnectionListView',
-  'views/DrawDoodleView',
-  'views/DoodleImageView',
-  'views/BrushPickerView',
+  'views/StartView',
+  'views/UserSelectView',
+  'views/DrawImageView',
+  'views/ViewImageView',
   'views/CaptureImageView'
 ], function(
   $,
   _,
   Backbone,
 
-  io,
+  SocketHandler,
 
-  Connection,
-  DoodleImageModel,
+  UserModel,
+  ImageModel,
 
-  ConnectionList,
+  UserCollection,
+  ImageCollection,
 
-  ConnectionListView,
-  DrawDoodleView,
-  DoodleImageView,
-  BrushPickerView,
+  StartView,
+  UserSelectView,
+  DrawImageView,
+  ViewImageView,
   CaptureImageView
 ) {
 
 
   var App = Backbone.View.extend({
 
+    screens: {},
+    previousScreen: null,
+    activeScreen: null,
+
     el: '#app',
 
-    template: _.template(function() {/*
-      <h1>Doodle</h1>
-      <h3><%- name %> <small>id: <%- connectionId %></small></h3>
-      <div>
-        <button id="btn-take_picture" style="margin:170px auto;width:40%;display:block;padding:20px;">Take picture</button>
-      </div>
-    */}.toString().split('\n').slice(1, -1).join('')),
-
     events: {
-      'click #btn-take_picture': 'takePicture'
+      'click #btn-take_picture': 'captureImage'
     },
 
     initialize: function() {
-      _.bindAll(this, 'setupIO', 'render', 'takePicture', 'onConnectionSelected');
-
-      this.connectionList = new ConnectionList();
-      this.connectionListView = new ConnectionListView({
-        collection: this.connectionList
-      });
-      this.connectionListView.on('connection:select', this.onConnectionSelected);
-
-      window.collection = this.connectionList;
-
+      // Models
       var names = ['Hektor', 'Gustav', 'Mikaela', 'Emma', 'Anders', 'Henrik'];
-      this.name = names[parseInt(Math.random() * names.length, 10)];
+      this.user = new UserModel({
+        name: names[parseInt(Math.random() * names.length, 10)]
+      });
 
-      this.setupIO();
+      // Collections
+      this.userCollection = new UserCollection();
+      this.requestImageCollection = new ImageCollection();
+      this.responseImageCollection = new ImageCollection();
+
+
+      // Screens
+      this.screens['start-view'] = new StartView({
+        user: this.user,
+        userCollection: this.userCollection,
+        requestImageCollection: this.requestImageCollection,
+        responseImageCollection: this.responseImageCollection
+      });
+      this.listenTo(this.screens['start-view'], 'request.screen', this.requestScreen);
+
+      this.screens['capture-image'] = new CaptureImageView();
+      this.listenTo(this.screens['capture-image'], 'request.screen', this.requestScreen);
+
+      this.screens['user-select'] = new UserSelectView({
+        user: this.user,
+        userCollection: this.userCollection
+      });
+      this.listenTo(this.screens['user-select'], 'request.screen', this.requestScreen);
+      this.listenTo(this.screens['user-select'], 'request.action', this.requestAction);
+
+      this.screens['draw-image'] = new DrawImageView();
+      this.listenTo(this.screens['draw-image'], 'request.screen', this.requestScreen);
+      this.listenTo(this.screens['draw-image'], 'request.action', this.requestAction);
+
+      this.screens['view-image'] = new ViewImageView();
+      this.listenTo(this.screens['view-image'], 'request.screen', this.requestScreen);
+
+
+
+      // Socket
+      SocketHandler.init({
+        user: this.user,
+        userCollection: this.userCollection,
+        requestImageCollection: this.requestImageCollection,
+        responseImageCollection: this.responseImageCollection
+      });
+
+
+
+      this.setActiveScreen(this.screens['start-view']);
     },
 
-    setupIO: function() {
-      var socket = this.socket = io();
 
-      socket.on('connect', _.bind(function() {
-        this.connectionId = socket.io.engine.id;
-        console.log('connected');
+    requestScreen: function(data) {
+      var screen = this.screens[data.screen];
 
-        socket.emit('app.connect', {
-          appId: 'doodle'
-        });
+      if (data.screen === 'previous') {
+        screen = this.previousScreen;
+      }
 
-        socket.emit('app.connections');
-        this.$('small').html(this.connectionId);
-      }, this));
+      if (!screen) {
+        throw 'Request screen failed. There is no ' + data.screen + ' screen in the application';
+      }
 
-      socket.on('app.connections', _.bind(function(data) {
-        // set sockets
-        this.connectionList.setConnections(data.connections);
-        // request name from all
-        _.each(data.connections, function(connection) {
-          socket.emit('app.emit', {
-            event: 'requestName',
-            to: connection.id,
-            data: {
-              target: this.connectionId
-            }
-          });
-        }, this);
-      }, this));
-
-      socket.on('requestName', _.bind(function(data) {
-        socket.emit('app.emit', {
-          event: 'connection.name',
-          to: data.target,
-          data: {
-            connectionId: this.connectionId,
-            name: this.name
-          }
-        });
-      }, this));
-
-      socket.on('connection.name', _.bind(function(data) {
-        var connection = this.connectionList.getById(data.connectionId);
-        if (connection) {
-          connection.set('name', data.name);
-        }
-      }, this));
-
-      socket.on('doodle.request', _.bind(function(data) {
-
-        var model = new DoodleImageModel({
-          dataURI: data.dataURI,
-          width: data.width,
-          height: data.height
-        });
-
-        var doodleView = new DrawDoodleView({
-          doodleImageModel: model,
-          connectionId: data.from
-        });
-        this.$el.html(doodleView.render().$el);
-
-        doodleView.on('request:back', function() {
-          this.render();
-        }, this);
-        doodleView.on('request:send', function(data) {
-
-          socket.emit('app.emit', {
-            event: 'doodle.response',
-            to: data.connectionId,
-            data: {
-              dataURI: data.doodleImageModel.get('dataURI'),
-              width: data.doodleImageModel.get('width'),
-              height: data.doodleImageModel.get('height'),
-              from: this.connectionId
-            }
-          });
-
-          this.render();
-
-        }, this);
-
-      }, this));
-
-      socket.on('doodle.response', _.bind(function(data) {
-
-        var model = new DoodleImageModel({
-          dataURI: data.dataURI,
-          width: data.width,
-          height: data.height
-        });
-
-        var view = new DoodleImageView({
-          doodleImageModel: model,
-        });
-        this.$el.html(view.render().$el);
-
-        view.on('request:back', function() {
-          this.render();
-        }, this);
-
-      }, this));
+      this.setActiveScreen(screen, data.data);
     },
 
-    render: function() {
-      this.$el.html(this.template({
-        name: this.name,
-        connectionId: this.connectionId
-      }));
+    setActiveScreen: function(screen, data) {
+      if (this.activeScreen) {
+        this.activeScreen.remove();
+      }
 
-      return this;
+      if (data) {
+        screen.setActive(data);
+      }
+
+      this.$el.empty().html(screen.render().el);
+      screen.delegateEvents();
+
+      this.previousScreen = this.activeScreen;
+      this.activeScreen = screen;
     },
 
-    takePicture: function() {
-      var imageView = this.imageView = new CaptureImageView();
-      this.$el.empty().html(imageView.render().el);
-      
-      imageView.on('picture:captured', this.onImageCaptured, this);
-    },
-    onImageCaptured: function(data) {   
-      this.doodleImageModel = data.doodleImageModel;
 
-      // this.imageView.remove();
-      // this.imageView = null;
-
-      this.$el.empty().html(this.connectionListView.render().el);
-      
-    },
-
-    onConnectionSelected: function(data) {
-      if (this.doodleImageModel) {
-        this.socket.emit('app.emit', {
-          event: 'doodle.request',
-          to: this.connectionId,
-          data: {
-            from: this.connectionId,
-            dataURI: this.doodleImageModel.get('dataURI'),
-            width: this.doodleImageModel.get('width'),
-            height: this.doodleImageModel.get('height')
-          }
-        });
-        // this.connectionListView.remove();
-        this.render();
+    requestAction: function(data) {
+      switch(data.action) {
+        case 'send.doodle.request': {
+          SocketHandler.sendDoodleRequest(data.data.imageModel);
+        } break;
+        case 'send.doodle.response': {
+          SocketHandler.sendDoodleRequest(data.data.imageModel);
+        } break;
       }
     }
+    
 
   });
 
-
-  Backbone.sync = function() {};
 
   return App;
 });
