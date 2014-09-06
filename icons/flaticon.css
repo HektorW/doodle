@@ -1,0 +1,53 @@
+@font-face {
+	font-family: "Flaticon";
+	src: url("flaticon.eot");
+	src: url("flaticon.eot#iefix") format("embedded-opentype"),
+	url("flaticon.woff") format("woff"),
+	url("flaticon.ttf") format("truetype"),
+	url("flaticon.svg") format("svg");
+	font-weight: normal;
+	font-style: normal;
+}
+[class^="flaticon-"]:before, [class*=" flaticon-"]:before,
+[class^="flaticon-"]:after, [class*=" flaticon-"]:after {   
+	font-family: Flaticon;
+	-webkit-font-smoothing: antialiased;
+}.flaticon-accepted:before {
+	content: "\e000";
+}
+.flaticon-bust:before {
+	content: "\e001";
+}
+.flaticon-camera9:before {
+	content: "\e002";
+}
+.flaticon-curve9:before {
+	content: "\e003";
+}
+.flaticon-image11:before {
+	content: "\e004";
+}
+.flaticon-left35:before {
+	content: "\e005";
+}
+.flaticon-left36:before {
+	content: "\e006";
+}
+.flaticon-left37:before {
+	content: "\e007";
+}
+.flaticon-photo134:before {
+	content: "\e008";
+}
+.flaticon-picture11:before {
+	content: "\e009";
+}
+.flaticon-small35:before {
+	content: "\e00a";
+}
+.flaticon-undo10:before {
+	content: "\e00b";
+}
+.flaticon-user60:before {
+	content: "\e00c";
+}

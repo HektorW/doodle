@@ -37,6 +37,7 @@ button {
   background: #0074D9;
   border: 0;
   padding: 0.2em 1em;
+  border-radius: 5%;
   transition: background 0.1s ease;
 }
 button:active {
@@ -194,4 +195,16 @@ ul {
  */
 .image-view img {
   margin: 0;
+}
+
+
+/**
+ * ImageSelect
+ */
+.image-list {
+  margin-top: 20px;
+}
+.image-list--item {
+  font-size: 30px;
+  margin: 20px 10px;
 }

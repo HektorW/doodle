@@ -13,6 +13,7 @@ define([
 
   'views/StartView',
   'views/UserSelectView',
+  'views/ImageSelectView',
   'views/DrawImageView',
   'views/ViewImageView',
   'views/CaptureImageView'
@@ -31,6 +32,7 @@ define([
 
   StartView,
   UserSelectView,
+  ImageSelectView,
   DrawImageView,
   ViewImageView,
   CaptureImageView
@@ -88,6 +90,9 @@ define([
       this.screens['view-image'] = new ViewImageView();
       this.listenTo(this.screens['view-image'], 'request.screen', this.requestScreen);
 
+      this.screens['image-select'] = new ImageSelectView();
+      this.listenTo(this.screens['image-select'], 'request.screen', this.requestScreen);
+      this.listenTo(this.screens['image-select'], 'request.action', this.requestAction);
 
 
       // Socket
@@ -123,8 +128,11 @@ define([
         this.activeScreen.remove();
       }
 
-      if (data) {
-        screen.setActive(data);
+      if (data && screen.setData) {
+        screen.setData(data);
+      }
+      if (screen.setActive) {
+        screen.setActive();
       }
 
       this.$el.empty().html(screen.render().el);
@@ -141,7 +149,7 @@ define([
           SocketHandler.sendDoodleRequest(data.data.imageModel);
         } break;
         case 'send.doodle.response': {
-          SocketHandler.sendDoodleRequest(data.data.imageModel);
+          SocketHandler.sendDoodleResponse(data.data.imageModel);
         } break;
       }
     }

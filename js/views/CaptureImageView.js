@@ -30,8 +30,6 @@ define([
       _.bindAll(this, 'onMediaStreamSuccess', 'onMediaStreamFail');
     },
 
-    setActive: function() {},
-
     render: function() {
       this.$el.html(this.template());
 

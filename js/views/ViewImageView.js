@@ -13,7 +13,7 @@ define([
     template: _.template((function() {/*
       <div class="image-view">
         <img src="<%- dataURI %>">
-        <button id="btn-back"><span class="glyphicon glyphicon-step-backward"></span></button>
+        <button id="btn-back"><span class="glyphicon flaticon-left35"></span></button>
       </div>
     */}.toString().split('\n').slice(1, -1).join('\n'))),
 
@@ -25,7 +25,7 @@ define([
       _.bindAll(this, 'render', 'requestBack');
     },
 
-    setActive: function(data) {
+    setData: function(data) {
       this.imageModel = data.imageModel;
     },
 
@@ -38,7 +38,7 @@ define([
 
     requestBack: function() {
       this.trigger('request.screen', {
-        screen: 'previous'
+        screen: 'start-view'
       });
     }
 

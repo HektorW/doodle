@@ -37,7 +37,7 @@ define([
       this.listenTo(this.userCollection, 'change add remove reset', this.render);
     },
 
-    setActive: function(data) {
+    setData: function(data) {
       if (!data.action) {
         throw 'No action supplied to UserSelectView.setActive';
       }

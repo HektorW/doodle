@@ -45,20 +45,18 @@ define([
 		},
 	
 		initialize: function() {
-			_.bindAll(this, 'render', 'unrender', 'colorClicked', 'setColor');
+			_.bindAll(this, 'render', 'colorClicked', 'setColor');
 		},
 
 		render: function() {
 			this.$el.html(this.template({
 				colors: this.colors
 			}));
+			this.delegateEvents();
 
 			this.setColor(this.colors.olive);
 
 			return this;
-		},
-		unrender: function() {
-			$('body').css('background', this.colors.olive);
 		},
 
 		setColor: function(color) {

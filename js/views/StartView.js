@@ -28,7 +28,9 @@ define([
   
     events: {
       'click .title': 'toggleFullscreen',
-      'click .start-view--capture-image': 'requestCaptureImageScreen'
+      'click .start-view--capture-image': 'requestCaptureImageScreen',
+      'click [data-requests]': 'requestDrawImageScreen',
+      'click [data-responses]': 'requestViewImageScreen'
     },
   
     initialize: function(options) {
@@ -39,9 +41,9 @@ define([
       this.requestImageCollection = options.requestImageCollection;
 
 
-      this.listenTo(this.user, 'change', this.render);
-      this.listenTo(this.responseImageCollection, 'change add remove reset', this.render);
-      this.listenTo(this.requestImageCollection, 'change add remove reset', this.render);
+      this.user.on('change', this.render, this);
+      this.responseImageCollection.on('change add remove reset', this.render, this);
+      this.requestImageCollection.on('change add remove reset', this.render, this);
     },
 
     render: function() {
@@ -87,6 +89,26 @@ define([
     requestCaptureImageScreen: function() {
       this.trigger('request.screen', {
         screen: 'capture-image'
+      });
+    },
+
+    requestDrawImageScreen: function() {
+      this.trigger('request.screen', {
+        screen: 'image-select',
+        data: {
+          collection: this.requestImageCollection,
+          nextScreen: 'draw-image'
+        }
+      });
+    },
+
+    requestViewImageScreen: function() {
+      this.trigger('request.screen', {
+        screen: 'image-select',
+        data: {
+          collection: this.responseImageCollection,
+          nextScreen: 'view-image'
+        }
       });
     }
 

@@ -28,8 +28,8 @@ define([
 			<div class="draw-doodle">
 				<canvas width="320" height="240"></canvas>
 				<div class="draw-doodle--actions">
-					<button id="btn-back"><span class="glyphicon glyphicon-step-backward"></span></button>
-					<button id="btn-undo" disabled><span class="glyphicon glyphicon-repeat"></span></button>
+					<button id="btn-back"><span class="glyphicon flaticon-left35"></span></button>
+					<button id="btn-undo" disabled><span class="glyphicon flaticon-undo10"></span></button>
 					<button id="btn-send">Send</button>
 				</div>
 				<div id="brush-picker"></div>
@@ -74,17 +74,24 @@ define([
 			this.listenTo(this.doodlePaths, 'add change remove reset', this.drawAll);
 		},
 
-		setActive: function(data) {
+		setData: function(data) {
 			this.imageModel = data.imageModel;
 
 			this.image = new Image();
 			this.image.src = this.imageModel.get('dataURI');
 		},
 
+		remove: function() {
+			Backbone.View.prototype.remove.call(this);
+			this.brushPicker.remove();
+			this.brushPicker.setColor(this.brushPicker.colors.olive);
+		},
+
 		render: function() {
 			this.$el.html(this.template());
+			this.delegateEvents();
 
-			this.$('#brush-picker').empty().html(this.brushPicker.render().$el);
+			this.$('#brush-picker').empty().html(this.brushPicker.render().el);
 
 			var canvas = this.canvas = this.$('canvas').get(0);
 			canvas.width = this.imageModel.get('width');
@@ -92,7 +99,7 @@ define([
 
 			this.ctx = this.canvas.getContext('2d');
 
-			this.drawAll();
+			this.drawImage();
 
 			return this;
 		},
@@ -260,7 +267,7 @@ define([
 				}
 			})
 			this.trigger('request.screen', {
-				screen: 'previous'
+				screen: 'start-view'
 			});
 		}
 
