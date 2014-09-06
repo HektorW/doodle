@@ -25,11 +25,15 @@ define([
 	var DrawDoodleView = Backbone.View.extend({
 
 		template: _.template(function() {/*
-			<canvas width="320" height="240"></canvas>
-			<button id="btn-back"><span class="glyphicon glyphicon-step-backward"></span></button>
-			<button id="btn-undo" disabled><span class="glyphicon glyphicon-repeat"></span></button>
-			<button id="btn-send">Send</button>
-			<div id="brush-picker"></div>
+			<div class="draw-doodle">
+				<canvas width="320" height="240"></canvas>
+				<div class="draw-doodle--actions">
+					<button id="btn-back"><span class="glyphicon glyphicon-step-backward"></span></button>
+					<button id="btn-undo" disabled><span class="glyphicon glyphicon-repeat"></span></button>
+					<button id="btn-send">Send</button>
+				</div>
+				<div id="brush-picker"></div>
+			</div>
 		*/}.toString().split('\n').slice(1, -1).join('')),
 
 		events: {
@@ -96,6 +100,9 @@ define([
 			this.$('#brush-picker').html(this.brushPicker.render().$el);
 
 			var canvas = this.canvas = this.$('canvas').get(0);
+			canvas.width = this.doodleImageModel.get('width');
+			canvas.height = this.doodleImageModel.get('height');
+
 			var ctx = this.ctx = this.canvas.getContext('2d');
 
 			this.drawImage();
@@ -169,6 +176,7 @@ define([
 				thickness: thickness
 			});
 
+			this.$('.draw-doodle--actions').hide();
 			this.activeDoodlePath.on('add:point', this.onPathUpdate, this);
 		},
 		endPath: function(endPoint) {
@@ -181,6 +189,7 @@ define([
 			this.doodlePaths.add(this.activeDoodlePath);
 
 			this.activeDoodlePath = null;
+			this.$('.draw-doodle--actions').show();
 		},
 		onPathUpdate: function() {
 			var points = this.activeDoodlePath.get('points');
@@ -194,8 +203,9 @@ define([
 		},
 
 		getPointInElement: function(point) {
-			point.x -= this.$el.offset().left;
-			point.y -= this.$el.offset().top;
+			var offset = this.$('canvas').offset();
+			point.x -= offset.left;
+			point.y -= offset.top;
 			return point;
 		},
 

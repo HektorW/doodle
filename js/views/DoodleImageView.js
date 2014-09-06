@@ -11,8 +11,10 @@ define([
   var DoodleImageView = Backbone.View.extend({
     
     template: _.template((function() {/*
-      <img src="<%- dataURI %>">
-      <button id="btn-back"><span class="glyphicon glyphicon-step-backward"></span></button>
+      <div class="image-view">
+        <img src="<%- dataURI %>">
+        <button id="btn-back"><span class="glyphicon glyphicon-step-backward"></span></button>
+      </div>
     */}.toString().split('\n').slice(1, -1).join('\n'))),
 
     events: {

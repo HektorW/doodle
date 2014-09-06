@@ -11,12 +11,14 @@ define([
 	var BrushPickerView = Backbone.View.extend({
 		
 		template: _.template(function() {/*
-			<ul style="width:100px;">
-				<% _.each(colors, function(color, name) { %>
-					<li data-color="<%= color %>" class="brush-color" style="background:<%= color %>;color:<%= color %>;"><% name[0].toUpperCase() + name.substr(1); %></li>
-				<% }); %>
-			</ul>
-			<input type="range" style="width:94px;"></input>
+			<div class="brush-picker">
+				<ul style="width:100px;">
+					<% _.each(colors, function(color, name) { %>
+						<li data-color="<%= color %>" class="brush-color" style="background:<%= color %>;color:<%= color %>;"></li>
+					<% }); %>
+				</ul>
+				<!-- <input type="range" style="width:94px;"></input> -->
+			</div>
 		*/}.toString().split('\n').slice(1, -1).join('')),
 	
 		events: {
@@ -43,8 +45,7 @@ define([
 		},
 	
 		initialize: function() {
-			_.bindAll(this, 'render', 'colorClicked', 'setColor');
-			this.activeColor = this.colors.red;
+			_.bindAll(this, 'render', 'unrender', 'colorClicked', 'setColor');
 		},
 
 		render: function() {
@@ -52,9 +53,12 @@ define([
 				colors: this.colors
 			}));
 
-			this.setColor(this.activeColor);
+			this.setColor(this.colors.olive);
 
 			return this;
+		},
+		unrender: function() {
+			$('body').css('background', this.colors.olive);
 		},
 
 		setColor: function(color) {
@@ -62,6 +66,12 @@ define([
 
 			this.$('.brush-color.selected').removeClass('selected');
 			this.$('[data-color="' + color + '"]').addClass('selected');
+
+			this.activeColor = color;
+
+			this.trigger('color.selected', {
+				color: color
+			});
 		},
 
 		colorClicked: function(event) {
@@ -69,10 +79,6 @@ define([
 			var color = $target.data('color');
 
 			this.setColor(color);
-
-			this.trigger('color.selected', {
-				color: color
-			});
 		}
 
 	});

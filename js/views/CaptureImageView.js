@@ -15,13 +15,15 @@ define([
   var CaptureImageView = Backbone.View.extend({
 
     template: _.template((function() {/*
-      <video autoplay="true" width="<%= size %>" height="<%= size %>" style="position:absolute;margin:0;top:0;left:0;"></video>
-      <button id="btn-capture" style="position:fixed;bottom:20px;width:50%;left:50%;margin-left:-25%;text-align:center;">Take picture</button>
-      <canvas></canvas>
+      <div class="capture-image">
+        <video autoplay="true"></video>
+        <button class="capture-button"><span class="glyphicon glyphicon-camera"></span></button>
+        <canvas></canvas>
+      </div>
     */}.toString().split('\n').slice(1, -1).join('\n'))),
    
     events: {
-      'click #btn-capture': 'capture'
+      'click .capture-button': 'capture'
     },
 
     initialize: function() {
@@ -29,12 +31,7 @@ define([
     },
 
     render: function() {
-      var maxSize = 640;
-      var size = Math.min(maxSize, window.innerWidth, window.innerHeight);
-
-      this.$el.html(this.template({
-        size: size
-      }));
+      this.$el.html(this.template());
 
       this.setupCamera();
 
@@ -54,7 +51,7 @@ define([
 
       this.videoStream = stream;
     },
-    onMediaStreamFail: function() {
+    onMediaStreamFail: function(err) {
       console.log(err);
     },
 
@@ -62,14 +59,30 @@ define([
       var canvas = this.$('canvas').get(0);
       var video = this.$('video').get(0);
 
-      canvas.width = video.width;
-      canvas.height = video.height;
-      canvas.getContext('2d').drawImage(video, 0, 0, video.width, video.height);
+      var wWidth = window.innerWidth;
+      var wHeight = window.innerHeight;
+
+      var width;
+      var height;
+
+      if (wWidth < wHeight) {
+        width = wWidth;
+        height = video.videoHeight * (wWidth / video.videoWidth);
+      } else {
+        width = video.videoWidth * (wHeight / videoHeight);
+        height = video.videoHeight;
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(video, 0, 0, width, height);
 
       this.videoStream.stop();
 
       var doodleImageModel = new DoodleImageModel({
-        dataURI: canvas.toDataURL('image/png')
+        dataURI: canvas.toDataURL('image/png'),
+        width: width,
+        height: height
       });
 
       this.trigger('picture:captured', {

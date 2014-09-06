@@ -55,8 +55,9 @@ define([
       _.bindAll(this, 'setupIO', 'render', 'takePicture', 'onConnectionSelected');
 
       this.connectionList = new ConnectionList();
-      this.connectionListView = new ConnectionListView();
-      this.connectionListView.setConnectionList(this.connectionList);
+      this.connectionListView = new ConnectionListView({
+        collection: this.connectionList
+      });
       this.connectionListView.on('connection:select', this.onConnectionSelected);
 
       window.collection = this.connectionList;
@@ -83,13 +84,10 @@ define([
       }, this));
 
       socket.on('app.connections', _.bind(function(data) {
-
         // set sockets
         this.connectionList.setConnections(data.connections);
-
         // request name from all
         _.each(data.connections, function(connection) {
-
           socket.emit('app.emit', {
             event: 'requestName',
             to: connection.id,
@@ -98,7 +96,6 @@ define([
             }
           });
         }, this);
-
       }, this));
 
       socket.on('requestName', _.bind(function(data) {
@@ -122,7 +119,9 @@ define([
       socket.on('doodle.request', _.bind(function(data) {
 
         var model = new DoodleImageModel({
-          dataURI: data.dataURI
+          dataURI: data.dataURI,
+          width: data.width,
+          height: data.height
         });
 
         var doodleView = new DrawDoodleView({
@@ -141,6 +140,8 @@ define([
             to: data.connectionId,
             data: {
               dataURI: data.doodleImageModel.get('dataURI'),
+              width: data.doodleImageModel.get('width'),
+              height: data.doodleImageModel.get('height'),
               from: this.connectionId
             }
           });
@@ -154,11 +155,13 @@ define([
       socket.on('doodle.response', _.bind(function(data) {
 
         var model = new DoodleImageModel({
-          dataURI: data.dataURI
+          dataURI: data.dataURI,
+          width: data.width,
+          height: data.height
         });
 
         var view = new DoodleImageView({
-          doodleImageModel: model
+          doodleImageModel: model,
         });
         this.$el.html(view.render().$el);
 
@@ -175,23 +178,22 @@ define([
         connectionId: this.connectionId
       }));
 
-
-      var brush = new BrushPickerView();
-      this.$el.html(brush.render().$el);
-
       return this;
     },
 
     takePicture: function() {
-      var imageView = new CaptureImageView();
-      this.$el.html(imageView.render().$el);
+      var imageView = this.imageView = new CaptureImageView();
+      this.$el.empty().html(imageView.render().el);
       
       imageView.on('picture:captured', this.onImageCaptured, this);
     },
     onImageCaptured: function(data) {   
       this.doodleImageModel = data.doodleImageModel;
 
-      this.$el.html(this.connectionListView.render().$el);
+      // this.imageView.remove();
+      // this.imageView = null;
+
+      this.$el.empty().html(this.connectionListView.render().el);
       
     },
 
@@ -199,18 +201,23 @@ define([
       if (this.doodleImageModel) {
         this.socket.emit('app.emit', {
           event: 'doodle.request',
-          to: data.connectionId,
+          to: this.connectionId,
           data: {
             from: this.connectionId,
-            dataURI: this.doodleImageModel.get('dataURI')
+            dataURI: this.doodleImageModel.get('dataURI'),
+            width: this.doodleImageModel.get('width'),
+            height: this.doodleImageModel.get('height')
           }
         });
+        // this.connectionListView.remove();
         this.render();
       }
     }
 
   });
 
+
+  Backbone.sync = function() {};
 
   return App;
 });

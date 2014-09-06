@@ -10,7 +10,9 @@ define([
 
 	var DoodleImageModel = Backbone.Model.extend({
 		defaults: {
-			dataURI: ''
+			dataURI: '',
+			width: 0,
+			height: 0
 		}
 	});
 
